@@ -52,4 +52,9 @@ public class AnagramController {
 		anagramCorpusService.deleteWord(word);
 	}
 	
+	@RequestMapping(value = "/reload.json",method = RequestMethod.GET)
+	public void reloadDictionary(){
+		anagramCorpusService.populateCorpusFromDictionaryFile("/dictionary.txt");
+	}
+	
 }

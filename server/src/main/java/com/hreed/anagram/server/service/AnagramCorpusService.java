@@ -31,4 +31,10 @@ public interface AnagramCorpusService {
 	 */
 	public void deleteAllWords();
 
+	/**Clears the current corpus from memory,
+	 * then loads an internal file from the relative path, given the name of the file
+	 * 
+	 * @param fileName The name of the text file to load into the corpus. Assumes the file is located at /src/main/resources
+	 */
+	public void populateCorpusFromDictionaryFile(String fileName);
 }
