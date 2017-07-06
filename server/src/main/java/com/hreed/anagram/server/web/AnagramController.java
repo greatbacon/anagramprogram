@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,9 +32,11 @@ public class AnagramController {
 	}
 	
 	@RequestMapping(value = "/anagrams/{word}.json",method = RequestMethod.GET)
-	public Map<String, Object> getAnagrams(@PathVariable("word") String word) {
+	public Map<String, Object> getAnagrams(@PathVariable("word") String word, 
+			@RequestParam(value="limit",required=false) Integer limit) {
 		Map<String, Object> response = new HashMap<String, Object>();
-		Set<String> anagrams = anagramCorpusService.getAnagrams(word);
+		System.out.println(limit);
+		Set<String> anagrams = anagramCorpusService.getAnagrams(word,limit);
 		response.put("anagrams", anagrams);
 		return response;
 	}

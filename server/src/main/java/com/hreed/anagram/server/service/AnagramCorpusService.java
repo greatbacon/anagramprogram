@@ -8,6 +8,6 @@ public interface AnagramCorpusService {
 	
 	public void addWords(Set<String> newWords);
 	
-	public Set<String> getAnagrams(String word);
+	public Set<String> getAnagrams(String word, Integer limit);
 
 }

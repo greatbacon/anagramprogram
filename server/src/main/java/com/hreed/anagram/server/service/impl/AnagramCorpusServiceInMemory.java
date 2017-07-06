@@ -41,14 +41,25 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	}
 
 	@Override
-	public Set<String> getAnagrams(String word) {
+	public Set<String> getAnagrams(String word, Integer limit) {
 		Set<String> anagrams = new HashSet<String>();
 		String key = generateKey(word);
 		Set<String> result = corpus.get(key); 
 		//Assuming a word set was found for the key, return the set minus the searched for word
-		if (result != null){
-			anagrams.addAll(result);
-			anagrams.remove(word);
+		if (result != null){						
+				anagrams.addAll(result);
+				anagrams.remove(word);
+		    //if a limit on response needs to be applied
+			if (limit != null){				
+				Iterator<String> resultIterator = anagrams.iterator();
+				Set<String> limitedAnagrams = new HashSet<String>();
+				for (int i = 0; i < limit; i++) {
+					if (resultIterator.hasNext()){
+						limitedAnagrams.add(resultIterator.next());						
+					}
+				}
+				anagrams = limitedAnagrams;
+			}					
 		}
 		//Either return a discovered set, minus utilized word or an empty set
 		return anagrams;		
