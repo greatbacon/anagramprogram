@@ -35,7 +35,6 @@ public class AnagramController {
 	public Map<String, Object> getAnagrams(@PathVariable("word") String word, 
 			@RequestParam(value="limit",required=false) Integer limit) {
 		Map<String, Object> response = new HashMap<String, Object>();
-		System.out.println(limit);
 		Set<String> anagrams = anagramCorpusService.getAnagrams(word,limit);
 		response.put("anagrams", anagrams);
 		return response;

@@ -1,5 +1,10 @@
 package com.hreed.anagram.server.service.impl;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,6 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.stereotype.Component;
 
 import com.hreed.anagram.server.service.AnagramCorpusService;
@@ -18,25 +24,14 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	
 	public AnagramCorpusServiceInMemory(){
 		corpus = new HashMap<String,Set<String>>();
+		populateCorpusFromDictionaryFile("/dictionary.txt");
 	}
 
 	@Override
 	public void addWords(Set<String> newWords) {		
 		Iterator<String> newWordsIterator = newWords.iterator();
 		while (newWordsIterator.hasNext()){
-			String word = newWordsIterator.next();
-			String key = generateKey(word);
-			//If there is already a word set for a given key, try and add the new word
-			if (corpus.get(key)!= null){
-				corpus.get(key).add(word);
-				System.out.println("Key match, adding new word");
-			} else {
-			//If there isn't a set for a given key, initialize the hashset
-				Set<String> newSet = new HashSet<String>();
-				newSet.add(word);
-				corpus.put(key, newSet);
-				System.out.println("New Key, adding new set");
-			}
+			insertWord(newWordsIterator.next());
 		}
 	}
 
@@ -71,5 +66,39 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		char[] wordArray = word.toCharArray();
 		Arrays.sort(wordArray);
 		return new String(wordArray);
+	}
+	
+	private void insertWord(String word){		
+		String key = generateKey(word);
+		//If there is already a word set for a given key, try and add the new word
+		if (corpus.get(key)!= null){
+			corpus.get(key).add(word);
+			System.out.println("Key match, adding new word");
+		} else {
+		//If there isn't a set for a given key, initialize the hashset
+			Set<String> newSet = new HashSet<String>();
+			newSet.add(word);
+			corpus.put(key, newSet);
+			System.out.println("New Key, adding new set");
+		}
+	}
+	
+	//This method assumes the file can be found on the relative path
+	public void populateCorpusFromDictionaryFile(String fileName){
+		String word;
+		try {
+			InputStream inputStream = getClass().getResourceAsStream(fileName);
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+			
+			while ((word=bufferedReader.readLine())!=null){
+				insertWord(word);
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
