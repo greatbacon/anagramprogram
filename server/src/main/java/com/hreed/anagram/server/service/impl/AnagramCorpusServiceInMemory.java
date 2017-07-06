@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.boot.logging.LoggingSystem;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.hreed.anagram.server.service.AnagramCorpusService;
@@ -20,7 +20,8 @@ import com.hreed.anagram.server.service.AnagramCorpusService;
 @Component
 public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	
-	Map<String,Set<String>> corpus;
+	private Map<String,Set<String>> corpus;
+	private Logger log = Logger.getLogger(this.getClass());
 	
 	public AnagramCorpusServiceInMemory(){
 		corpus = new HashMap<String,Set<String>>();
@@ -73,18 +74,19 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		//If there is already a word set for a given key, try and add the new word
 		if (corpus.get(key)!= null){
 			corpus.get(key).add(word);
-			System.out.println("Key match, adding new word");
+			log.debug("Key match, adding new word : " + word);
 		} else {
 		//If there isn't a set for a given key, initialize the hashset
 			Set<String> newSet = new HashSet<String>();
 			newSet.add(word);
 			corpus.put(key, newSet);
-			System.out.println("New Key, adding new set");
+			log.debug("New Key, adding new set for word : " + word);
 		}
 	}
 	
 	//This method assumes the file can be found on the relative path
 	public void populateCorpusFromDictionaryFile(String fileName){
+		log.info("Loading dictionary file `"+fileName+"` at startup");
 		String word;
 		try {
 			InputStream inputStream = getClass().getResourceAsStream(fileName);
@@ -94,11 +96,10 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 				insertWord(word);
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Unable to locate dictionary file `"+fileName+"` on class path. Dictionary not loaded.");
+			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Error processing dictionary file `"+fileName+"`. Is it formatted properly?");
 		}
 	}
 }
