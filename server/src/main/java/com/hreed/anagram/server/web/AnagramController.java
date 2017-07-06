@@ -40,4 +40,16 @@ public class AnagramController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/words.json",method = RequestMethod.DELETE)
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
+	public void deleteAllWords() {
+		anagramCorpusService.deleteAllWords();
+	}
+	
+	@RequestMapping(value = "/words/{word}.json",method = RequestMethod.DELETE)
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
+	public void deleteWord(@PathVariable("word") String word){
+		anagramCorpusService.deleteWord(word);
+	}
+	
 }

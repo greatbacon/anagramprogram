@@ -82,7 +82,7 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 			corpus.put(key, newSet);
 			log.debug("New Key, adding new set for word : " + word);
 		}
-	}
+	}	
 	
 	//This method assumes the file can be found on the relative path
 	public void populateCorpusFromDictionaryFile(String fileName){
@@ -101,5 +101,20 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		} catch (IOException e) {
 			log.error("Error processing dictionary file `"+fileName+"`. Is it formatted properly?");
 		}
+	}
+
+	@Override
+	public void deleteWord(String word) {
+		String key = generateKey(word);
+		Set<String> result = corpus.get(key);
+		//If there is a result for the key remove, otherwise it does not exist and does not need to be removed
+		if (result != null){
+			result.remove(word);
+		}
+	}
+
+	@Override
+	public void deleteAllWords() {
+		corpus.clear();		
 	}
 }

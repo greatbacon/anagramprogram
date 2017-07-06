@@ -9,5 +9,9 @@ public interface AnagramCorpusService {
 	public void addWords(Set<String> newWords);
 	
 	public Set<String> getAnagrams(String word, Integer limit);
+	
+	public void deleteWord(String word);
+	
+	public void deleteAllWords();
 
 }
