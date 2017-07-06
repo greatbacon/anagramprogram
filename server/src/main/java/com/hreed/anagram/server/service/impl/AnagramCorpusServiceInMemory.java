@@ -2,6 +2,7 @@ package com.hreed.anagram.server.service.impl;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -25,16 +26,32 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		while (newWordsIterator.hasNext()){
 			String word = newWordsIterator.next();
 			String key = generateKey(word);
-			corpus.get(key).add(word);
+			//If there is already a word set for a given key, try and add the new word
+			if (corpus.get(key)!= null){
+				corpus.get(key).add(word);
+				System.out.println("Key match, adding new word");
+			} else {
+			//If there isn't a set for a given key, initialize the hashset
+				Set<String> newSet = new HashSet<String>();
+				newSet.add(word);
+				corpus.put(key, newSet);
+				System.out.println("New Key, adding new set");
+			}
 		}
 	}
 
 	@Override
 	public Set<String> getAnagrams(String word) {
+		Set<String> anagrams = new HashSet<String>();
 		String key = generateKey(word);
-		Set<String> anagrams = corpus.get(key);
-		anagrams.remove(word);
-		return anagrams;
+		Set<String> result = corpus.get(key); 
+		//Assuming a word set was found for the key, return the set minus the searched for word
+		if (result != null){
+			anagrams.addAll(result);
+			anagrams.remove(word);
+		}
+		//Either return a discovered set, minus utilized word or an empty set
+		return anagrams;		
 	}
 
 	//In order to create a standard key across words, 
