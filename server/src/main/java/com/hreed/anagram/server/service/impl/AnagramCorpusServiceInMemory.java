@@ -6,8 +6,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.stereotype.Component;
+
 import com.hreed.anagram.server.service.AnagramCorpusService;
 
+@Component
 public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	
 	Map<String,Set<String>> corpus;

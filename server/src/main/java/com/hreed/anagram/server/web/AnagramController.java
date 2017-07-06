@@ -1,5 +1,6 @@
 package com.hreed.anagram.server.web;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,10 @@ public class AnagramController {
 	@Autowired
 	private AnagramCorpusService anagramCorpusService;
 	
-	@RequestMapping(value = "/words",method = RequestMethod.POST, consumes = "application/json")
+	@RequestMapping(value = "/words.json",method = RequestMethod.POST)
 	@ResponseBody
-	public void addWords(@RequestBody Set<String> words) throws Exception {
-		System.out.println(words.toString());
+	public void addWords(@RequestBody Map<String, Object> payload) throws Exception {
+		System.out.println(payload.toString());
 	}
 	
 	
