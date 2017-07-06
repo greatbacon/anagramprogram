@@ -62,13 +62,23 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	}
 
 	//In order to create a standard key across words, 
-	//first the string is converted into a charArray, unicode sorted, then converted back into a string. 
+	//first the string is converted into a charArray, unicode sorted, then converted back into a string.
+	/**Generates a key for the corpus by converting the string into a charArray, sorting it,
+	 * then converting it back into a string
+	 * 
+	 * @param word The word used to create the key
+	 * @return The resulting key
+	 */
 	private String generateKey(String word){
 		char[] wordArray = word.toCharArray();
 		Arrays.sort(wordArray);
 		return new String(wordArray);
 	}
 	
+	/**Inserts a word into the HashMap used for storing the corpus.
+	 * 
+	 * @param word The word to be added to the HashMap
+	 */
 	private void insertWord(String word){		
 		String key = generateKey(word);
 		//If there is already a word set for a given key, try and add the new word
@@ -84,7 +94,11 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		}
 	}	
 	
-	//This method assumes the file can be found on the relative path
+	
+	/**Loads an internal file from the relative path, given the name of the file
+	 * 
+	 * @param fileName The name of the text file to load into the corpus. Assumes the file is located at /src/main/resources
+	 */
 	public void populateCorpusFromDictionaryFile(String fileName){
 		log.info("Loading dictionary file `"+fileName+"` at startup");
 		String word;
