@@ -185,6 +185,13 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		return results;
 	}
 	
+	/**
+	 * A utility function that takes an arraylist of integers and calculates the mean value of it.
+	 * Returns zero for an empty set.
+	 * 
+	 * @param medianCollection The collection of integers to be computed
+	 * @return The floating point calculation of the mean of the set.
+	 */
 	private double calculateMean(ArrayList<Integer> medianCollection){
 		double result = 0.0;
 		medianCollection.sort(null);
