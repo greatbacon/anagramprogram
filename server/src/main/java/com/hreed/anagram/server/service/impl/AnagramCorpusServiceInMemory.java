@@ -5,11 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -24,7 +27,9 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	private Logger log = Logger.getLogger(this.getClass());
 	
 	public AnagramCorpusServiceInMemory(){
+		//TODO update with ConcurrentHashMap
 		corpus = new HashMap<String,Set<String>>();
+		//TODO replace value with one from properties file
 		populateCorpusFromDictionaryFile("/dictionary.txt");
 	}
 
@@ -84,13 +89,13 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		//If there is already a word set for a given key, try and add the new word
 		if (corpus.get(key)!= null){
 			corpus.get(key).add(word);
-			log.debug("Key match, adding new word : " + word);
+			log.debug("Key match, adding new word : " + word);			
 		} else {
 		//If there isn't a set for a given key, initialize the hashset
 			Set<String> newSet = new HashSet<String>();
 			newSet.add(word);
 			corpus.put(key, newSet);
-			log.debug("New Key, adding new set for word : " + word);
+			log.debug("New Key, adding new set for word : " + word);			
 		}
 	}	
 	
@@ -127,4 +132,76 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	public void deleteAllWords() {
 		corpus.clear();		
 	}
+
+	@Override
+	public Map<String, Object> getCorpusMetadata() {
+		Map<String, Object> results = new HashMap<String, Object>();
+		//Perform a copy of the current state of the corpus, to ensure the current analysis doesn't fail if it changes
+		Map<String,Set<String>> corpusState = new HashMap<String,Set<String>>(corpus);
+		Iterator<Entry<String, Set<String>>> corpusIterator = corpusState.entrySet().iterator();
+		ArrayList<Integer> medianCollection = new ArrayList<Integer>();
+		DecimalFormat decimalFormatter = new DecimalFormat("#.###");
+		int totalWordLength = 0;
+		int wordCount = 0;
+		int minWordLength = Integer.MAX_VALUE;
+		int maxWordLength = Integer.MIN_VALUE;
+		//If there is no collection of words to actually sort through
+		if (!corpusIterator.hasNext()){
+			results.put("word_count", 0);
+			results.put("min_length", 0);
+			results.put("max_length", 0);
+			results.put("median_length", 0);
+			results.put("avg_length", 0);
+		} else {
+			while (corpusIterator.hasNext()){
+				Entry<String, Set<String>> corpusEntry = corpusIterator.next();
+				Iterator<String> words = corpusEntry.getValue().iterator();
+				while (words.hasNext()){
+					String word = words.next();
+					//increment total word count
+					wordCount++;
+					
+					int wordLength = word.length();
+					//add to the total count of all word lengths (for average computations)
+					totalWordLength += wordLength;
+					//determine if the word is the smallest word in the new corpus
+					if (wordLength < minWordLength){
+						minWordLength = wordLength;
+					}
+					//determine if the word is the largest word in the new corpus
+					if (wordLength > maxWordLength){
+						maxWordLength = wordLength;
+					}
+					medianCollection.add(wordLength);				
+				}
+			}
+			results.put("word_count", wordCount);
+			results.put("min_length", minWordLength);
+			results.put("max_length", maxWordLength);
+			results.put("median_length", decimalFormatter.format(calculateMean(medianCollection)));
+			results.put("avg_length", decimalFormatter.format(((double) totalWordLength / (double) wordCount)));
+		}		
+		
+		return results;
+	}
+	
+	private double calculateMean(ArrayList<Integer> medianCollection){
+		double result = 0.0;
+		medianCollection.sort(null);
+		int collectionSize = medianCollection.size();
+		if (collectionSize > 0){
+			//the set of integers is odd, so grab the middle one as the mean
+			if (collectionSize % 2 == 1){
+				result = medianCollection.get((collectionSize-1)/2);
+			}
+			//the set of integers is even, so we must calculate the mean
+			else {
+				int firstValue = medianCollection.get(collectionSize/2);
+				int secondValue = medianCollection.get((collectionSize/2)-1);
+				result = ((double) firstValue + (double) secondValue) / 2;
+			}
+		}
+		return result;
+	}
+
 }

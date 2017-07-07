@@ -1,5 +1,6 @@
 package com.hreed.anagram.server.service;
 
+import java.util.Map;
 import java.util.Set;
 
 //By utilizing an interface for the service, 
@@ -31,10 +32,18 @@ public interface AnagramCorpusService {
 	 */
 	public void deleteAllWords();
 
-	/**Clears the current corpus from memory,
+	/**Clears the current corpus,
 	 * then loads an internal file from the relative path, given the name of the file
 	 * 
 	 * @param fileName The name of the text file to load into the corpus. Assumes the file is located at /src/main/resources
 	 */
 	public void populateCorpusFromDictionaryFile(String fileName);
+	
+	/**
+	 * Returns the number of words in the current corpus, min,max,median, and average word length.
+	 * Will return zero for all values if the dictionary is empty 
+	 * @return The set of all metadata in a key,value collection.
+	 */
+	public Map<String, Object> getCorpusMetadata();
+	
 }

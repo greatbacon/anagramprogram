@@ -54,7 +54,15 @@ public class AnagramController {
 	
 	@RequestMapping(value = "/reload.json",method = RequestMethod.GET)
 	public void reloadDictionary(){
+		//TODO replace value with one from properties file
 		anagramCorpusService.populateCorpusFromDictionaryFile("/dictionary.txt");
+	}
+	
+	@RequestMapping(value = "/metadata.json",method = RequestMethod.GET)
+	public Map<String, Object> getDictionaryMetadata(){
+		Map<String, Object> response = new HashMap<String, Object>();
+		response = anagramCorpusService.getCorpusMetadata();
+		return response;
 	}
 	
 }
