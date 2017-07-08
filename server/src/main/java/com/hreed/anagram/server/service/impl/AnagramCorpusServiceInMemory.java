@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -23,12 +24,12 @@ import com.hreed.anagram.server.service.AnagramCorpusService;
 @Component
 public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	
-	private Map<String,Set<String>> corpus;
+	private ConcurrentHashMap<String,Set<String>> corpus;
 	private Logger log = Logger.getLogger(this.getClass());
 	
 	public AnagramCorpusServiceInMemory(){
 		//TODO update with ConcurrentHashMap
-		corpus = new HashMap<String,Set<String>>();
+		corpus = new ConcurrentHashMap<String,Set<String>>();
 		//TODO replace value with one from properties file
 		populateCorpusFromDictionaryFile("/dictionary.txt");
 	}
@@ -37,7 +38,10 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	public void addWords(Set<String> newWords) {		
 		Iterator<String> newWordsIterator = newWords.iterator();
 		while (newWordsIterator.hasNext()){
-			insertWord(newWordsIterator.next());
+			String currentWord = newWordsIterator.next();
+			if (validateWord(currentWord) == true){
+				insertWord(currentWord);	
+			}			
 		}
 	}
 
@@ -87,8 +91,9 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	private void insertWord(String word){		
 		String key = generateKey(word);
 		//If there is already a word set for a given key, try and add the new word
-		if (corpus.get(key)!= null){
-			corpus.get(key).add(word);
+		Set<String> wordSet = corpus.get(key);
+		if (wordSet!= null){
+			wordSet.add(word);			
 			log.debug("Key match, adding new word : " + word);			
 		} else {
 		//If there isn't a set for a given key, initialize the hashset
@@ -99,6 +104,25 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		}
 	}	
 	
+	/** Before a word is inserted into the corpus, it needs to be validated to ensure it
+	 * 1.) contains only Roman characters (a-z)
+	 * 2.) It does not have non-standard capitalization (i.e. daRe)
+	 * 
+	 * @param word The word to be validate
+	 * @return True if the word only contains roman characters & is either lowercase or properly capitalized
+	 */
+	private boolean validateWord(String word){	
+		//This regex checks to only add words that consist of words made up of roman characters, 
+		//where only the first character may be capitalized
+		//This regex excludes two hyphenated entries from the provided dictionary "Jean-Christophe" and "Jean-Pierre"
+		if (word.matches("^[A-Za-z][a-z]*")){	
+			return true;
+		} else {
+			log.debug("Invalid word:"+word);
+			return false;			
+		}
+	}
+	
 	public void populateCorpusFromDictionaryFile(String fileName){
 		deleteAllWords();
 		log.info("Loading dictionary file `"+fileName+"` at startup");
@@ -108,7 +132,9 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
 			
 			while ((word=bufferedReader.readLine())!=null){
-				insertWord(word);
+				if (validateWord(word) == true){
+					insertWord(word);	
+				}				
 			}
 		} catch (FileNotFoundException e) {
 			log.error("Unable to locate dictionary file `"+fileName+"` on class path. Dictionary not loaded.");
@@ -206,6 +232,27 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 				int firstValue = medianCollection.get(collectionSize/2);
 				int secondValue = medianCollection.get((collectionSize/2)-1);
 				result = ((double) firstValue + (double) secondValue) / 2;
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public ArrayList<Set<String>> getLargestAnagramSets() {
+		int largestSetSize = 0;
+		ArrayList<Set<String>> result = new ArrayList<Set<String>>();
+		Map<String,Set<String>> corpusState = new HashMap<String,Set<String>>(corpus);
+		Iterator<Entry<String, Set<String>>> corpusIterator = corpusState.entrySet().iterator();		
+		if (corpusIterator.hasNext()){
+			while (corpusIterator.hasNext()){
+				Entry<String, Set<String>> corpusEntry = corpusIterator.next();
+				if (corpusEntry.getValue().size() > largestSetSize){
+					result.clear();
+					result.add(corpusEntry.getValue());
+					largestSetSize = corpusEntry.getValue().size();
+				} else if (corpusEntry.getValue().size() == largestSetSize){
+					result.add(corpusEntry.getValue());
+				}
 			}
 		}
 		return result;

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ public class AnagramController {
 
 	@Autowired
 	private AnagramCorpusService anagramCorpusService;
+	private Logger log = Logger.getLogger(this.getClass());
 	
 	@RequestMapping(value = "/words.json",method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.CREATED)
@@ -33,9 +35,17 @@ public class AnagramController {
 	
 	@RequestMapping(value = "/anagrams/{word}.json",method = RequestMethod.GET)
 	public Map<String, Object> getAnagrams(@PathVariable("word") String word, 
-			@RequestParam(value="limit",required=false) Integer limit) {
+			@RequestParam(value="limit",required=false) String limitQuery) {
+		Integer value = null;
+		if (limitQuery != null){
+			try {
+				value = Integer.parseInt(limitQuery);
+			} catch (NumberFormatException e){
+				log.error("Failed to parse int from limit param : "+limitQuery +". Defaulting to no limit.");
+			}
+		}
 		Map<String, Object> response = new HashMap<String, Object>();
-		Set<String> anagrams = anagramCorpusService.getAnagrams(word,limit);
+		Set<String> anagrams = anagramCorpusService.getAnagrams(word,value);
 		response.put("anagrams", anagrams);
 		return response;
 	}
@@ -62,6 +72,13 @@ public class AnagramController {
 	public Map<String, Object> getDictionaryMetadata(){
 		Map<String, Object> response = new HashMap<String, Object>();
 		response = anagramCorpusService.getCorpusMetadata();
+		return response;
+	}
+	
+	@RequestMapping(value = "/most.json",method = RequestMethod.GET)
+	public Map<String, Object> getLargestAnagramSets(){
+		Map<String, Object> response = new HashMap<String, Object>();
+		response.put("anagrams", anagramCorpusService.getLargestAnagramSets());
 		return response;
 	}
 	

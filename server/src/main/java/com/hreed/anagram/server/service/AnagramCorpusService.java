@@ -1,5 +1,6 @@
 package com.hreed.anagram.server.service;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,5 +46,12 @@ public interface AnagramCorpusService {
 	 * @return The set of all metadata in a key,value collection.
 	 */
 	public Map<String, Object> getCorpusMetadata();
+	
+	/**
+	 * Returns a list of the largest anagram sets. In the event of a tie for size, multiple sets are returned.
+	 * If the dictionary is empty, an empty ArrayList is returned.
+	 * @return An ArrayList containing zero, one, or many sets of anagrams.
+	 */
+	public ArrayList<Set<String>> getLargestAnagramSets();
 	
 }
