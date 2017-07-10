@@ -27,10 +27,9 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 	private ConcurrentHashMap<String,Set<String>> corpus;
 	private Logger log = Logger.getLogger(this.getClass());
 	
-	public AnagramCorpusServiceInMemory(){
-		//TODO update with ConcurrentHashMap
+	
+	public AnagramCorpusServiceInMemory(){		
 		corpus = new ConcurrentHashMap<String,Set<String>>();
-		//TODO replace value with one from properties file
 		populateCorpusFromDictionaryFile("/dictionary.txt");
 	}
 
@@ -159,6 +158,7 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		}
 	}
 	
+	@Override
 	public void populateCorpusFromDictionaryFile(String fileName){
 		deleteAllWords();
 		log.info("Loading dictionary file `"+fileName+"` at startup");

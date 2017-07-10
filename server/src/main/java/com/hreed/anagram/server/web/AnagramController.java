@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +28,7 @@ public class AnagramController {
 	@Autowired
 	private AnagramCorpusService anagramCorpusService;
 	private Logger log = Logger.getLogger(this.getClass());
+	
 	
 	@RequestMapping(value = "/words.json",method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.CREATED)
@@ -83,8 +85,7 @@ public class AnagramController {
 	}
 	
 	@RequestMapping(value = "/reload.json",method = RequestMethod.GET)
-	public void reloadDictionary(){
-		//TODO replace value with one from properties file
+	public void reloadDictionary(){		
 		anagramCorpusService.populateCorpusFromDictionaryFile("/dictionary.txt");
 	}
 	

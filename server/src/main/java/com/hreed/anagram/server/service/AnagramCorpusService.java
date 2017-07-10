@@ -43,7 +43,7 @@ public interface AnagramCorpusService {
 	public void deleteAnagrams(String word);
 	
 	/**
-	 * Completly removes all words from the corpus
+	 * Completely removes all words from the corpus
 	 */
 	public void deleteAllWords();
 

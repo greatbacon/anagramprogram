@@ -1,0 +1,96 @@
+## Documentation
+
+##Introduction
+
+## API
+
+- `POST /words.json`: Takes a JSON array of English-language words and adds them to the corpus (data store).
+- `GET /anagrams/:word.json`: Returns a JSON array of English-language words that are anagrams of the word passed in the URL.
+  - Query param "limit" [OPTIONAL] : Limits the set size to the provided limit
+  - Query param "caseinsensitive" [OPTIONAL] : If set to true, will attempt to return all anagrams of a given word, regardless of capitalization.
+- `DELETE /anagrams/:word.json` : Deletes a single word and all associated anagrams from the data store.
+- `DELETE /words/:word.json`: Deletes a single word from the data store.
+- `DELETE /words.json`: Deletes all contents of the data store.
+- `GET /reload.json`: An external endpoint for reloading the in memory dictionary from the configured dictionary file at runtime. Clears the stored dictionary first.
+- `GET /metadata.json`: Returns a JSON array containing the total dictionary size, minimum word length, maximum word length, median word length, and average word length.
+- `GET /most.json` : Returns a JSON array containing the anagram sets with the most number of words in them. May return multiple sets of anagrams.
+- `GET /groups.json`: Returns a JSON array containing the anagram sets that were larger or equal to the provided size query param
+  - Query param "size" : Determines the floor size of anagram sets to return.
+
+## Potential New Features
+1.) An endpoint that triggers a refresh of the data set from the static text file/persistence layer.
+2.) An endpoint that allows a user to upload their own dictionary text file (either to append or overwrite the current corpus)
+3.) An endpoint that tracks the current memory footprint of the corpus
+4.) An endpoint that provides the last *x* anagrams searched for.
+5.) An endpoint that provides a random anagram set.
+6.) Words that are used to search for anagrams can be added to the corpus if they don't already exist (and are valid).
+7.) When adding words using POST /words.json, the user gets a JSON collection back of words that weren't added to the corpus and the reason for the rejection (word exists, non-roman chars, improper Capitalization)
+
+## Implementation Details
+1.) Spring Framework for easy REST API implementations
+2.) Data store as a HashMap<String,Set<String>> chosen to limit complications in getting the code to run on another's computer.
+Since the data being worked with are essentially just Key-Value pairs, this allows for easy spin-up and development. 
+Of course this renders the word set non-persistent and in the event that this tool would need to be used amongst others with a need for a shared and stable data set would call for a DB 
+(or at least a caching tool with an ability to write its store to disk).
+3.) The application.properties file: This file is read at startup by Spring Boot to perform server and system configurations.  
+Under a production system, I would rather set up a deployment tool like chef that keeps those kind of server level configurations in a seperate code base rather than in an obscure file.
+4.) The logging system relies on the out of the box log4j configuration that comes with Spring-Boot.  It provides high level granularity in logging levels (INFO and higher by default)
+and just prints output to console. It alsoi provides some basic timestamping and package output.  
+For a web system that would be deployed at scale, writing the data to a log file as well as storing data like user/session_ids would be useful to add, as well as information on things
+like response time and processing time for high level data analysis (check for bottlenecks or system slowdown).  Maybe even having a system for enabling DEBUG level by system/class/user.
+5.) When calculating the metadata values for the corpus, I initially considered adding a method for each piece of metadata to be returned, but decided that since each value would require
+analyzing the entire dataset, it would be more efficient to simply have a single call.
+6.) When returning the largest sets of anagrams in a dictionary (i.e. the words with the most anagrams), I opted to simply put a direct array of those sets and tied them to the key of "anagram"
+as aside from sorting alphabetically and using that word as the key for the set, I figured it would be more versitle to an end user to have the entire set of words in an easy to access variable.
+
+## Word and Return Limits
+Technically according to the Java specification, the largest word that could be stored in the the backing ConcurrentHashMap would be a String of length Integer.MAX_VALUE, 
+defined as 2,147,483,647 (or 2^31 -1).  Word length can also be limited based on heap allocation, in this case it would the current free space of the heap, divided by two 
+(as each character is two bytes). Based on some rough calculations, in order to store a single word of that length, the JVM would need to have at least 4.3 GB allocated to its heap.
+
+Based on my research for returns, the maximum allowed value depends on various limits set by browsers and servers involved with the transaction, 
+but according to the HTTP specification, there is no strict limit on the size of the return body. 
+So in this case the limit would either come from a default value provided in Tomcat (which I was unable to find) or a limit set on the size of a JSON object itself.
+In lieu of either of those values, since JSON in Java is usually formatted as a string as well, I will again refer to Integer.MAX_VALUE to calculate a max body length.
+Using the metadata value on the dictionary of an average sized word being 9 characters (round to 10 for formatting overhead) and 15 characters for the JSON key data, the theoretical max size 
+of a particular anagram set could be roughly 214,748,363 words (assuming memory was not an issue in storing all those words).
+
+## Edge Cases
+1.) What if a user tries to add no words? 
+[The system works as usual, returning a simple 201]
+2.) How to treat Capitalized characters. 
+[Words with the first letter capitalized are valid and considered Proper Nouns for the purpose of the flag. They are not returned with lowercased words by default.]
+2a) What about capitalization within a word.  Is Dear an anagram of reaD? of read?
+[Non-standard capitalization renders the word invalid and they are not added to the corpus.]
+3.) How to treat non-Roman characters (& or é).
+[Only words using the characters a-z are valid, words with characters other than those 26 are not added to the corpus.]
+Dev Note: After implementing a regex for the above rule, I discovered two words in the provided dictionary that failed to meet this criteria "Jean-Christophe" and "Jean-Pierre"
+4.) When limiting responses, how should the returned data be determined (is random fine or should it be the first x alphabetically)?
+5.) What if a user provides zero or less as a limiting query?
+[No anagrams will be returned]
+6.) What if a user provides a limit higher than the amount of anagrams found?
+[All available anagrams will be returned]
+7.) When calculating the average word length or median, should it return float or integers?
+[In this case it will return as a float with up to 3 points past the decimal]
+8.) What if a user deletes a word that isn't in the corpus?
+[The system works as usual, returning a simple 204]
+9.) What if the corpus is modified during metadata analysis?
+[If a full snapshot copy of the corpus was obtained before it was modified, the analysis proceeds as usual. If not, the server returns a 500 error]
+10.) What if a user provides an unexpected value in a query param?
+[The query param will be ignored and the default behaviour will be executed instead.]
+
+## Design Overviews, Trade-Offs, and Assumptions :
+1.) When adding new words, the system avoids adding duplicate words, words with to the data store, but will still return a 201 if given all duplicate values.
+Chances are, if a user is adding a word to a data set, they are trying to ensure that it exists, and thus even adding a pre-existing word can be considered a successful action.
+2.) Likewise, delete always returns 204, even if the word did not exist
+3.) When a user calls the metadata endpoint and triggers a data analysis of the dictionary corpus, I make sure to copy the underlying HashMap to a seperate object. This creates a situation
+where the user may possibly receive the metadata on a dataset that no longer exists, but I am assuming here that in a real word application, the data set would not actually change that often.
+This may result in a less than optimal response time compared to precalculated metadata values, but it minimizes parallellization issues in the current implementation, and if the data set grows
+to a large enough size, a caching system could be implemented to provide faster response times for the metadata.
+4.) I chose to limit the returned average & mean to 3 places past the decimal, to help maintain readability.
+5.) Noting implementation detail #2, the system can fail if a user attempts to get anagrams while another user reloads/removes the dictionary. In the case of actual
+greenfield development with an end goal of production deployment, in virtually all cases I would take the time to implement/integrate a DB as the backing data store. 
+As noted in the implementation details, I have not done that for this program in order to minimize the effort needed to get the code to compile/execute on another computer.
+6.) When adding logic to the codebase to implement the case insensitive flag, I decided to keep the logic for including proper nouns in the anagram set in a seperate function.  I had two reasons
+for this. First, it minimizes impacts with the original/default functionality by not touching or modifying older code. Two, I decided that the two types of read from the dataset were distinct
+and logically complicated enough that it would be a benefit for any future to developer to have two seperately maintained functions rather than a single monolith of business logic.
