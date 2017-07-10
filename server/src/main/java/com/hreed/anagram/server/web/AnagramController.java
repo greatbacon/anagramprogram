@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,7 @@ public class AnagramController {
 	@RequestMapping(value = "/anagrams/{word}.json",method = RequestMethod.GET)
 	public Map<String, Object> getAnagrams(@PathVariable("word") String word, 
 			@RequestParam(value="limit",required=false) String limitQuery) {
+		//Check to see if the limit flag was set to a valid integer
 		Integer value = null;
 		if (limitQuery != null){
 			try {
@@ -80,6 +83,24 @@ public class AnagramController {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("anagrams", anagramCorpusService.getLargestAnagramSets());
 		return response;
+	}
+	
+	@RequestMapping(value = "groups.json",method = RequestMethod.GET)
+	public Map<String, Object> getAnagramGroupsBySize(@RequestParam("size") String size, HttpServletResponse response){
+		Map<String, Object> result = new HashMap<String, Object>();
+		Integer value = null;
+		if (size != null){
+			try {
+				value = Integer.parseInt(size);
+				result.put("anagrams", anagramCorpusService.getAnagramGroupsBySize(value));
+			} catch (NumberFormatException e){
+				log.error("Failed to parse int from size param : "+size +". Returning bad request.");
+				result.put("success", false);
+				result.put("message", "Invalid value for size param");
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			}
+		}		
+		return result;
 	}
 	
 }

@@ -258,4 +258,20 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		return result;
 	}
 
+	@Override
+	public ArrayList<Set<String>> getAnagramGroupsBySize(int size) {
+		ArrayList<Set<String>> result = new ArrayList<Set<String>>();
+		Map<String,Set<String>> corpusState = new HashMap<String,Set<String>>(corpus);
+		Iterator<Entry<String, Set<String>>> corpusIterator = corpusState.entrySet().iterator();		
+		if (corpusIterator.hasNext()){
+			while (corpusIterator.hasNext()){
+				Entry<String, Set<String>> corpusEntry = corpusIterator.next();
+				if (corpusEntry.getValue().size() >= size){
+					result.add(corpusEntry.getValue());
+				}
+			}
+		}
+		return result;
+	}
+
 }

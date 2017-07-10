@@ -54,4 +54,13 @@ public interface AnagramCorpusService {
 	 */
 	public ArrayList<Set<String>> getLargestAnagramSets();
 	
+	/**
+	 * Returns a list of all anagram sets of an equal or greater size than the provided value.
+	 * Will return all available anagram sets for values of one or less
+	 * 
+	 * @param size The minimum size of all anagram sets to be returned.
+	 * @return A list of all anagram sets of size equal or greater than the provided value
+	 */
+	public ArrayList<Set<String>> getAnagramGroupsBySize(int size);
+	
 }
