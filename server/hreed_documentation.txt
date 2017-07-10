@@ -1,6 +1,18 @@
 ## Documentation
 
-##Introduction
+## Instructions to run/and or compile the code.
+This project was written in Java 8 (1.8.0_45) and compiled using Maven 3.5.0
+
+A pre-compiled jar can be found in target/hreed_assessment-1.0.jar
+To start the server simply run `java -jar hreed_assessment-1.0.jar`
+
+If you want to compile the code and check it for yourself, make sure you have Maven and the JDK installed and accessable from the command line, and
+in this directory (the same one the pom.xml is in) run `mvn spring-boot:run` 
+This will compile the code and automatically start the embedded Tomcat server.
+
+My expanded collection of unit tests can be found at src/test/ruby/anagram_test.rb
+The rest of my documentation for this project can be found below.
+If you have any questions contact me at hamiltonjreed@gmail.com
 
 ## API
 
