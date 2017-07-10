@@ -14,7 +14,7 @@ public interface AnagramCorpusService {
 	 */
 	public void addWords(Set<String> newWords);
 	
-	/**
+	/**Given a word and limit value, return all anagrams for the given word, up to the limit provided.
 	 * 
 	 * @param word The word to be used for finding anagrams of
 	 * @param limit Limit on the number of anagrams returned.  Returns all if null.
@@ -22,11 +22,25 @@ public interface AnagramCorpusService {
 	 */
 	public Set<String> getAnagrams(String word, Integer limit);
 	
+	/**Given a word and limit value, return all anagrams regardless of capitalization for the given word, up to the limit provided.
+	 * 
+	 * @param word The word to be used for finding anagrams of
+	 * @param limit Limit on the number of anagrams returned. Returns all if null.
+	 * @return The set of all (or porentially limited) anagrams of the provided word, regardless of capitalized characters.
+	 */
+	public Set<String> getAnagramsCaseInsensitive(String word, Integer limit);
+	
 	/**
 	 * Deletes the specified word from the corpus if it exists
 	 * @param word The word to be deleted
 	 */
 	public void deleteWord(String word);
+	
+	/**
+	 * Deletes the specified word and all of it's anagrams from the corpus.
+	 * @param word
+	 */
+	public void deleteAnagrams(String word);
 	
 	/**
 	 * Completly removes all words from the corpus

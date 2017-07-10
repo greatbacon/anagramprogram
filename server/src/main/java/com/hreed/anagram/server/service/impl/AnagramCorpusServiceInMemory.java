@@ -69,6 +69,42 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		//Either return a discovered set, minus utilized word or an empty set
 		return anagrams;		
 	}
+	
+	@Override
+	public Set<String> getAnagramsCaseInsensitive(String word, Integer limit) {
+		Set<String> anagrams = new HashSet<String>();
+		//First get all anagrams based on the lowercase word
+		String normalizedWord = word.toLowerCase();
+		String key = generateKey(normalizedWord);
+		Set<String> result = corpus.get(key);
+		if (result != null){
+			anagrams.addAll(result);
+		}
+		//Now get anagrams results based on each of the characters being uppercase
+		for (int i = 0; i < normalizedWord.length(); i++){
+			char[] characterArray = normalizedWord.toCharArray();
+			characterArray[i] = Character.toUpperCase(characterArray[i]);
+			String capitalizedWord = new String(characterArray);
+			key = generateKey(capitalizedWord);
+			result = corpus.get(key);
+			if (result != null){
+				anagrams.addAll(result);
+			}			
+		}
+		//Now that we have all anagrams, regardless of capitalization, we remove the seed word, and adjust the set for the limit
+		anagrams.remove(word);
+		if (limit != null && anagrams.size() > limit){
+			Iterator<String> resultIterator = anagrams.iterator();
+			Set<String> limitedAnagrams = new HashSet<String>();
+			for (int i = 0; i < limit; i++) {
+				if (resultIterator.hasNext()){
+					limitedAnagrams.add(resultIterator.next());						
+				}
+			}
+			anagrams = limitedAnagrams;
+		}				
+		return anagrams;
+	}
 
 	//In order to create a standard key across words, 
 	//first the string is converted into a charArray, unicode sorted, then converted back into a string.
@@ -152,6 +188,12 @@ public class AnagramCorpusServiceInMemory implements AnagramCorpusService {
 		if (result != null){
 			result.remove(word);
 		}
+	}
+	
+	@Override	
+	public void deleteAnagrams(String word) {
+		String key = generateKey(word);
+		corpus.remove(key);
 	}
 
 	@Override

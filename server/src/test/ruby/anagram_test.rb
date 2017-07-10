@@ -552,7 +552,34 @@ class TestCases < Test::Unit::TestCase
     assert_equal(0, body['anagrams'].size)
   end
   
+  def test_delete_anagrams_of_non_present_word
+    
+	#delete the anagrams	
+	res = @client.delete('/anagrams/daer.json')
+
+    assert_equal('204', res.code, "Unexpected response code")
+
+    # should fetch an empty body
+    res = @client.get('/anagrams/daer.json')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_equal(0, body['anagrams'].size)
+	
+	# double check with one of the other anagrams
+	res = @client.get('/anagrams/read.json')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_equal(0, body['anagrams'].size)
+  end
+  
   def test_delete_anagrams_multiple_times	
+	
 	#delete the anagrams
 	3.times do
       res = @client.delete('/anagrams/read.json')
@@ -581,6 +608,10 @@ class TestCases < Test::Unit::TestCase
   
   def test_delete_anagrams_dictionary	
     
+	# refresh dataset
+	res = @client.get('/reload.json')
+    assert_equal('200', res.code, "Unexpected response code")	
+	
 	#delete the anagrams
     res = @client.delete('/anagrams/stale.json')
 
@@ -604,5 +635,146 @@ class TestCases < Test::Unit::TestCase
 
     assert_equal(0, body['anagrams'].size)
   end
+  
+  def test_case_insensitive_param_true
+	
+	#add proper nouns to the dictionary
+	res = @client.post('/words.json', nil, {"words" => ["Read", "Dear", "Dare"] })
+	
+	#check if any anagrams are returned with flag
+	res = @client.get('/anagrams/dear.json','caseinsensitive=true')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(Dare Dear Read dare read)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+	
+  end
+  
+  def test_case_insensitive_param_dictionary
+	
+	# refresh dataset
+	res = @client.get('/reload.json')
+    assert_equal('200', res.code, "Unexpected response code")
+	
+	#check if any anagrams are returned with flag
+	res = @client.get('/anagrams/baby.json','caseinsensitive=true')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(Abby)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+	
+	
+  end
+  
+  def test_case_insensitive_param_no_proper_nouns
+	
+	# fetch anagrams
+    res = @client.get('/anagrams/read.json','caseinsensitive=true')
+
+    assert_equal('200', res.code, "Unexpected response code")
+    assert_not_nil(res.body)
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(dare dear)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+	
+	# fetch a different anagram in the same set
+    res = @client.get('/anagrams/dare.json','caseinsensitive=true')
+
+    assert_equal('200', res.code, "Unexpected response code")
+    assert_not_nil(res.body)
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(dear read)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+  end
+  
+  def test_case_insensitive_param_false
+	
+	#add proper nouns to the dictionary
+	res = @client.post('/words.json', nil, {"words" => ["Read", "Dear", "Dare"] })
+	
+	#check if any anagrams are returned with flag
+	res = @client.get('/anagrams/dear.json','caseinsensitive=false')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(dare read)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+  end
+
+  def test_case_insensitive_param_invalid  
+	
+	#add proper nouns to the dictionary
+	res = @client.post('/words.json', nil, {"words" => ["Read", "Dear", "Dare"] })
+	
+	#check if any anagrams are returned with flag
+	res = @client.get('/anagrams/dear.json','caseinsensitive=xxyyxx')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(dare read)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+  end
+  
+  def test_case_insensitive_true_param_with_limit_one_param
+    
+	#add proper nouns to the dictionary
+	res = @client.post('/words.json', nil, {"words" => ["Read", "Dear", "Dare"] })
+	
+	#check if any anagrams are returned with flag
+	res = @client.get('/anagrams/dear.json','caseinsensitive=true&limit=1')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(Dare)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+  end
+  
+  def test_case_insensitive_false_param_with_limit_one_param
+    
+	#add proper nouns to the dictionary
+	res = @client.post('/words.json', nil, {"words" => ["Read", "Dear", "Dare"] })
+	
+	#check if any anagrams are returned with flag
+	res = @client.get('/anagrams/dear.json','caseinsensitive=false&limit=1')
+
+    assert_equal('200', res.code, "Unexpected response code")
+
+    body = JSON.parse(res.body)
+
+    assert_not_nil(body['anagrams'])
+
+    expected_anagrams = %w(read)
+    assert_equal(expected_anagrams, body['anagrams'].sort)
+  end  
   
 end

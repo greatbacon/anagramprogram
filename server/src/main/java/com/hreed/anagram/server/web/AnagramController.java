@@ -37,7 +37,8 @@ public class AnagramController {
 	
 	@RequestMapping(value = "/anagrams/{word}.json",method = RequestMethod.GET)
 	public Map<String, Object> getAnagrams(@PathVariable("word") String word, 
-			@RequestParam(value="limit",required=false) String limitQuery) {
+			@RequestParam(value="limit",required=false) String limitQuery, 
+			@RequestParam(value="caseinsensitive",required=false) String caseInsensitive) {
 		//Check to see if the limit flag was set to a valid integer
 		Integer value = null;
 		if (limitQuery != null){
@@ -47,10 +48,26 @@ public class AnagramController {
 				log.error("Failed to parse int from limit param : "+limitQuery +". Defaulting to no limit.");
 			}
 		}
+		Boolean includeCapitals = false;
+		if (caseInsensitive != null){
+			includeCapitals = Boolean.parseBoolean(caseInsensitive);
+		}
 		Map<String, Object> response = new HashMap<String, Object>();
-		Set<String> anagrams = anagramCorpusService.getAnagrams(word,value);
+		Set<String> anagrams;
+		if (includeCapitals == false){
+			anagrams = anagramCorpusService.getAnagrams(word,value);	
+		} else {
+			anagrams = anagramCorpusService.getAnagramsCaseInsensitive(word, value);
+		}
+		
 		response.put("anagrams", anagrams);
 		return response;
+	}
+	
+	@RequestMapping(value = "/anagrams/{word}.json",method = RequestMethod.DELETE)
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
+	public void deleteAnagrams(@PathVariable("word") String word){
+		anagramCorpusService.deleteAnagrams(word);
 	}
 	
 	@RequestMapping(value = "/words.json",method = RequestMethod.DELETE)
