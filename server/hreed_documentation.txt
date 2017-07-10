@@ -11,6 +11,13 @@ in this directory (the same one the pom.xml is in) run `mvn spring-boot:run`
 This will compile the code and automatically start the embedded Tomcat server.
 
 My expanded collection of unit tests can be found at src/test/ruby/anagram_test.rb
+
+The source code can be found in src/main/java/com/hreed/anagram/server
+	+ App.java : This class is the entry hook for the Spring-Framework, and provides the functionality for the self contained server to get up and running
+	+ web/AnagramController.java : This class is responsible for handling the URI mapping and HTTP requests
+	+ service/AnagramCorpusService.java : This class is an interface for the controller to access the underlying business logic and data store
+	+ service/impl/AnagramCorpusServiceImpl.java : This class handles all the heavy lifting, as well as maintaining the ConcurrentHashMap that backs the data storage.
+
 The rest of my documentation for this project can be found below.
 If you have any questions contact me at hamiltonjreed@gmail.com
 
